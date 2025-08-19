@@ -1,0 +1,58 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ui-defis-final",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-400, 0],
+      "id": "webhook-post-final",
+      "name": "Webhook (POST)"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"problematique\": \"Améliorer mon estime de soi\",\n  \"niveau_detecte\": \"débutant\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"Inventaire des réussites\",\n      \"mission\": \"Listez 5 réussites personnelles des 6 derniers mois, même petites\",\n      \"pourquoi\": \"Reconnaître ses succès renforce la confiance et combat l'autocritique\",\n      \"bonus\": \"Demandez à un proche de vous rappeler une réussite que vous avez oubliée\",\n      \"duree_estimee\": \"15\"\n    },\n    {\n      \"numero\": 2,\n      \"nom\": \"Compliment miroir\",\n      \"mission\": \"Regardez-vous dans un miroir et dites-vous 3 qualités à voix haute\",\n      \"pourquoi\": \"L'auto-affirmation positive reprogramme le dialogue intérieur négatif\",\n      \"bonus\": \"Répétez l'exercice chaque matin pendant une semaine\",\n      \"duree_estimee\": \"5\"\n    },\n    {\n      \"numero\": 3,\n      \"nom\": \"Journal des forces\",\n      \"mission\": \"Écrivez dans un carnet une qualité que vous avez utilisée aujourd'hui\",\n      \"pourquoi\": \"Identifier ses forces au quotidien développe la conscience de sa valeur\",\n      \"bonus\": \"Notez aussi comment cette qualité a aidé quelqu'un d'autre\",\n      \"duree_estimee\": \"10\"\n    },\n    {\n      \"numero\": 4,\n      \"nom\": \"Posture de confiance\",\n      \"mission\": \"Tenez-vous droit, épaules en arrière, menton relevé pendant 2 minutes\",\n      \"pourquoi\": \"La posture influence directement l'état d'esprit et la confiance\",\n      \"bonus\": \"Adoptez cette posture avant chaque situation stressante\",\n      \"duree_estimee\": \"5\"\n    },\n    {\n      \"numero\": 5,\n      \"nom\": \"Témoignages positifs\",\n      \"mission\": \"Demandez à 3 personnes de vous dire une qualité qu'elles apprécient chez vous\",\n      \"pourquoi\": \"Le regard extérieur objectif contrebalance l'autocritique interne\",\n      \"bonus\": \"Conservez ces témoignages par écrit pour les relire en cas de doute\",\n      \"duree_estimee\": \"20\"\n    },\n    {\n      \"numero\": 6,\n      \"nom\": \"Célébration des petites victoires\",\n      \"mission\": \"Chaque soir, notez 3 choses que vous avez bien faites dans la journée\",\n      \"pourquoi\": \"Reconnaître ses accomplissements quotidiens nourrit l'estime de soi\",\n      \"bonus\": \"Partagez une victoire avec un proche pour la rendre plus réelle\",\n      \"duree_estimee\": \"10\"\n    },\n    {\n      \"numero\": 7,\n      \"nom\": \"Arrêt des comparaisons\",\n      \"mission\": \"Quand vous vous comparez à quelqu'un, listez 3 de vos propres atouts uniques\",\n      \"pourquoi\": \"Rediriger l'attention vers ses propres forces brise le cycle de comparaison\",\n      \"bonus\": \"Complimentez la personne à qui vous vous comparez\",\n      \"duree_estimee\": \"5\"\n    },\n    {\n      \"numero\": 8,\n      \"nom\": \"Défis progressifs\",\n      \"mission\": \"Choisissez une tâche légèrement hors de votre zone de confort et réalisez-la\",\n      \"pourquoi\": \"Réussir des défis graduels prouve à votre cerveau que vous êtes capable\",\n      \"bonus\": \"Documentez votre ressenti avant et après le défi\",\n      \"duree_estimee\": \"30\"\n    },\n    {\n      \"numero\": 9,\n      \"nom\": \"Affirmations personnalisées\",\n      \"mission\": \"Créez 5 affirmations positives qui vous correspondent et répétez-les\",\n      \"pourquoi\": \"Les affirmations personnalisées sont plus efficaces que les génériques\",\n      \"bonus\": \"Enregistrez-vous en train de les dire et écoutez l'audio\",\n      \"duree_estimee\": \"15\"\n    },\n    {\n      \"numero\": 10,\n      \"nom\": \"Gratitude envers soi\",\n      \"mission\": \"Écrivez une lettre de remerciement à vous-même pour vos efforts\",\n      \"pourquoi\": \"La gratitude envers soi développe la bienveillance personnelle\",\n      \"bonus\": \"Relisez cette lettre dans un moment difficile\",\n      \"duree_estimee\": \"20\"\n    },\n    {\n      \"numero\": 11,\n      \"nom\": \"Compétences cachées\",\n      \"mission\": \"Identifiez 3 compétences que vous possédez mais sous-estimez\",\n      \"pourquoi\": \"Reconnaître ses talents cachés élargit la perception de sa valeur\",\n      \"bonus\": \"Trouvez une façon d'utiliser une de ces compétences cette semaine\",\n      \"duree_estimee\": \"15\"\n    },\n    {\n      \"numero\": 12,\n      \"nom\": \"Cercle de soutien\",\n      \"mission\": \"Identifiez 5 personnes qui croient en vous et contactez-en une\",\n      \"pourquoi\": \"S'entourer de personnes positives renforce l'estime de soi\",\n      \"bonus\": \"Planifiez un moment régulier avec ces personnes\",\n      \"duree_estimee\": \"25\"\n    },\n    {\n      \"numero\": 13,\n      \"nom\": \"Apprentissage valorisant\",\n      \"mission\": \"Apprenez quelque chose de nouveau pendant 30 minutes\",\n      \"pourquoi\": \"Acquérir de nouvelles compétences prouve votre capacité d'évolution\",\n      \"bonus\": \"Partagez votre apprentissage avec quelqu'un\",\n      \"duree_estimee\": \"30\"\n    },\n    {\n      \"numero\": 14,\n      \"nom\": \"Bilan des progrès\",\n      \"mission\": \"Comparez qui vous êtes aujourd'hui à qui vous étiez il y a un an\",\n      \"pourquoi\": \"Mesurer ses progrès révèle sa capacité de croissance personnelle\",\n      \"bonus\": \"Écrivez une lettre à votre moi d'il y a un an\",\n      \"duree_estimee\": \"20\"\n    },\n    {\n      \"numero\": 15,\n      \"nom\": \"Plan d'action personnel\",\n      \"mission\": \"Créez un plan pour maintenir et développer votre estime de soi\",\n      \"pourquoi\": \"Un plan concret transforme les bonnes intentions en habitudes durables\",\n      \"bonus\": \"Partagez votre plan avec un proche pour plus d'engagement\",\n      \"duree_estimee\": \"25\"\n    }\n  ]\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type", 
+                "value": "application/json; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-200, 0],
+      "id": "respond-json",
+      "name": "Respond JSON"
+    }
+  ],
+  "connections": {
+    "Webhook (POST)": {
+      "main": [
+        [
+          {
+            "node": "Respond JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ui-defis-final",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "0857529a-6481-46fa-8e92-53a13c15fb77",
+      "name": "Webhook Reception",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, -176],
+      "webhookId": "ui-defis-final"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse les données du formulaire HTML\nconst body = $input.first().json.body;\nlet problematique, nombreDefis;\n\n// Si les données arrivent en x-www-form-urlencoded\nif (typeof body === 'string') {\n  const params = new URLSearchParams(body);\n  problematique = params.get('Je veux...') || '';\n  nombreDefis = parseInt(params.get('Combien de défi à tu relevé') || '0');\n} else {\n  // Si les données arrivent en JSON\n  problematique = body['Je veux...'] || body.problematique || '';\n  nombreDefis = parseInt(body['Combien de défi à tu relevé'] || body.nombreDefis || '0');\n}\n\n// Détection automatique du niveau basé sur le nombre de défis déjà relevés\nlet niveau;\nif (nombreDefis === 0) {\n  niveau = 'débutant';\n} else if (nombreDefis <= 5) {\n  niveau = 'intermédiaire';\n} else {\n  niveau = 'avancé';\n}\n\nreturn {\n  problematique: problematique.trim(),\n  nombreDefis,\n  niveau,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "5ae513f6-0775-4f1c-82c2-3c5b3da45725",
+      "name": "Parse Input Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, -176]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Tu es un expert en développement personnel. Tu vas recevoir une problématique PRÉCISE et tu DOIS créer 15 micro-défis qui correspondent EXACTEMENT à cette problématique.\n\nPROBLÉMATIQUE À TRAITER: {{ $json.problematique }}\nNOMBRE DE DÉFIS DÉJÀ RELEVÉS: {{ $json.nombreDefis }}\nNIVEAU DÉTECTÉ: {{ $json.niveau }}\n\nRÈGLE STRICTE: Analyse la problématique ci-dessus et identifie le domaine exact (par exemple: entrepreneuriat, networking, émotions, organisation, etc.). Puis crée 15 défis QUI NE TRAITENT QUE DE CE DOMAINE SPÉCIFIQUE.\n\nEXEMPLES DE SPÉCIALISATION:\n- Entrepreneuriat → idées business, business plan, MVP, pitch, clients, financement, marketing\n- Networking → LinkedIn, événements, conversations, contacts pros, personal branding\n- Gestion émotions → identification émotions, régulation, triggers, techniques apaisement\n- Organisation → planning, to-do, méthodes productivité, workspace, priorisation\n- Confiance → affirmation de soi, prise de parole, limites, estime de soi\n\nTu dois créer des défis progressifs adaptés au niveau:\n- Débutant (0-2 défis): Actions simples, premiers pas\n- Intermédiaire (3-7 défis): Défis modérés, approfondissement\n- Avancé (8+ défis): Challenges complexes, maîtrise\n\nStructure de réponse OBLIGATOIRE (remplace les valeurs dynamiquement):\n{\n  \"problematique\": \"[Reprendre exactement: {{ $json.problematique }}]\",\n  \"niveau_detecte\": \"[Reprendre exactement: {{ $json.niveau }}]\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[Nom spécifique au domaine identifié]\",\n      \"mission\": \"[Action concrète liée UNIQUEMENT au domaine]\",\n      \"pourquoi\": \"[Explication du bénéfice pour CE domaine précis]\",\n      \"bonus\": \"[Action supplémentaire ou null]\",\n      \"duree_estimee\": \"10\"\n    }\n  ]\n}\n\nATTENTION: Ne génère JAMAIS de défis génériques comme 'respiration', 'gratitude', 'méditation' sauf si la problématique porte spécifiquement sur la gestion du stress/émotions.\n\nRéponds UNIQUEMENT en JSON valide, sans texte avant/après.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [400, -176],
+      "id": "836a6a81-1e8c-48e0-9fd6-97e4726e3037",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4-1106-preview"
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [400, 80],
+      "id": "0f77808c-f72c-4300-94d7-88b30adf1b71",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "cfCVOI8aC8r1CaGM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nettoie et valide la réponse de l'IA\nconst response = $input.first().json.output;\n\ntry {\n  let data;\n  \n  // Tenter de parser directement si c'est déjà un objet\n  if (typeof response === 'object') {\n    data = response;\n  } else {\n    // Sinon parser en tant que JSON string\n    data = JSON.parse(response);\n  }\n  \n  // Validation : vérifier qu'on a bien 15 défis\n  if (!data.defis || !Array.isArray(data.defis) || data.defis.length !== 15) {\n    throw new Error(`Nombre de défis incorrect: ${data.defis?.length || 0} au lieu de 15`);\n  }\n  \n  // Validation de la structure de chaque défi\n  data.defis.forEach((defi, index) => {\n    if (!defi.numero || !defi.nom || !defi.mission || !defi.pourquoi) {\n      throw new Error(`Défi ${index + 1} incomplet - manque: ${!defi.numero ? 'numero ' : ''}${!defi.nom ? 'nom ' : ''}${!defi.mission ? 'mission ' : ''}${!defi.pourquoi ? 'pourquoi' : ''}`);\n    }\n    // S'assurer que duree_estimee existe\n    if (!defi.duree_estimee) {\n      defi.duree_estimee = \"15\";\n    }\n  });\n  \n  return data;\n  \n} catch (error) {\n  // En cas d'erreur, retourner un exemple par défaut avec 15 défis complets\n  console.error('Erreur parsing IA:', error.message);\n  \n  const inputData = $('Parse Input Data').first().json;\n  \n  return {\n    problematique: inputData.problematique,\n    niveau_detecte: inputData.niveau,\n    erreur: error.message,\n    defis: [\n      {\n        \"numero\": 1,\n        \"nom\": \"Auto-observation quotidienne\",\n        \"mission\": \"Notez 3 situations où vous manquez de confiance cette semaine\",\n        \"pourquoi\": \"Identifier les patterns aide à mieux comprendre les déclencheurs\",\n        \"bonus\": null,\n        \"duree_estimee\": \"10\"\n      },\n      {\n        \"numero\": 2,\n        \"nom\": \"Inventaire des victoires\",\n        \"mission\": \"Listez 5 réussites personnelles des 2 dernières années\",\n        \"pourquoi\": \"Se rappeler ses succès renforce l'estime de soi\",\n        \"bonus\": \"Demandez à un proche ses 3 qualités préférées chez vous\",\n        \"duree_estimee\": \"15\"\n      },\n      {\n        \"numero\": 3,\n        \"nom\": \"Posture de pouvoir\",\n        \"mission\": \"Adoptez une posture droite et souriez pendant 2 minutes\",\n        \"pourquoi\": \"La posture influence directement l'état d'esprit et la confiance\",\n        \"bonus\": \"Faites cet exercice avant une situation stressante\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 4,\n        \"nom\": \"Affirmations positives\",\n        \"mission\": \"Répétez 3 affirmations positives sur vous-même chaque matin\",\n        \"pourquoi\": \"La répétition d'affirmations reprogramme l'esprit subconscient\",\n        \"bonus\": null,\n        \"duree_estimee\": \"8\"\n      },\n      {\n        \"numero\": 5,\n        \"nom\": \"Zone de confort expansion\",\n        \"mission\": \"Faites une chose qui vous intimide légèrement aujourd'hui\",\n        \"pourquoi\": \"Sortir de sa zone de confort renforce progressivement la confiance\",\n        \"bonus\": \"Documentez vos sensations avant et après\",\n        \"duree_estimee\": \"20\"\n      },\n      {\n        \"numero\": 6,\n        \"nom\": \"Compliment à soi-même\",\n        \"mission\": \"Identifiez 3 choses que vous avez bien faites aujourd'hui\",\n        \"pourquoi\": \"Reconnaître ses propres efforts développe l'auto-bienveillance\",\n        \"bonus\": null,\n        \"duree_estimee\": \"10\"\n      },\n      {\n        \"numero\": 7,\n        \"nom\": \"Contact visuel miroir\",\n        \"mission\": \"Regardez-vous dans les yeux dans le miroir pendant 1 minute\",\n        \"pourquoi\": \"Le contact visuel avec soi-même renforce l'acceptation de soi\",\n        \"bonus\": \"Souriez et dites-vous quelque chose de positif\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 8,\n        \"nom\": \"Conversation courageuse\",\n        \"mission\": \"Exprimez une opinion personnelle dans une conversation\",\n        \"pourquoi\": \"Exprimer ses idées renforce l'affirmation de soi\",\n        \"bonus\": null,\n        \"duree_estimee\": \"15\"\n      },\n      {\n        \"numero\": 9,\n        \"nom\": \"Célébration des petites victoires\",\n        \"mission\": \"Célébrez consciemment 3 petits accomplissements aujourd'hui\",\n        \"pourquoi\": \"Célébrer renforce les circuits neuronaux de la réussite\",\n        \"bonus\": \"Partagez une victoire avec quelqu'un\",\n        \"duree_estimee\": \"12\"\n      },\n      {\n        \"numero\": 10,\n        \"nom\": \"Respiration de confiance\",\n        \"mission\": \"Pratiquez 5 minutes de respiration profonde avant un défi\",\n        \"pourquoi\": \"La respiration calme le système nerveux et améliore la performance\",\n        \"bonus\": null,\n        \"duree_estimee\": \"8\"\n      },\n      {\n        \"numero\": 11,\n        \"nom\": \"Journal des forces\",\n        \"mission\": \"Écrivez sur vos 3 plus grandes forces et comment les utiliser\",\n        \"pourquoi\": \"Identifier ses forces permet de s'appuyer dessus dans les défis\",\n        \"bonus\": \"Demandez à 2 personnes quelles sont vos forces selon eux\",\n        \"duree_estimee\": \"18\"\n      },\n      {\n        \"numero\": 12,\n        \"nom\": \"Défi social\",\n        \"mission\": \"Initiez une conversation avec un inconnu\",\n        \"pourquoi\": \"Les interactions sociales développent la confiance interpersonnelle\",\n        \"bonus\": null,\n        \"duree_estimee\": \"25\"\n      },\n      {\n        \"numero\": 13,\n        \"nom\": \"Visualisation de réussite\",\n        \"mission\": \"Visualisez-vous réussissant un défi important pendant 10 minutes\",\n        \"pourquoi\": \"La visualisation prépare mentalement au succès\",\n        \"bonus\": \"Ajoutez des détails sensoriels à votre visualisation\",\n        \"duree_estimee\": \"15\"\n      },\n      {\n        \"numero\": 14,\n        \"nom\": \"Feedback constructif\",\n        \"mission\": \"Demandez un retour constructif à quelqu'un de confiance\",\n        \"pourquoi\": \"Le feedback externe aide à mieux se connaître et progresser\",\n        \"bonus\": null,\n        \"duree_estimee\": \"20\"\n      },\n      {\n        \"numero\": 15,\n        \"nom\": \"Plan d'action confiance\",\n        \"mission\": \"Créez un plan de 3 actions concrètes pour renforcer votre confiance\",\n        \"pourquoi\": \"Un plan d'action transforme l'intention en résultats mesurables\",\n        \"bonus\": \"Partagez votre plan avec un proche pour l'engagement\",\n        \"duree_estimee\": \"30\"\n      }\n    ]\n  };\n}"
+      },
+      "id": "7222901b-bd54-497b-9fb9-c32c341162ed",
+      "name": "Validation & Nettoyage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, -176]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json.erreur }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dd3f3719-ece1-4476-a649-88fa44591ec9",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [912, -64]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, GET, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "113e4802-caf7-4e9d-8733-5a05d0cc3bc9",
+      "name": "Response Final",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [992, -208]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log pour debugging\nconsole.log('Données reçues:', JSON.stringify($input.first().json, null, 2));\nreturn $input.first().json;"
+      },
+      "id": "d9ef2abe-7d23-4120-bc6d-3ea8da112d14",
+      "name": "Debug Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 160]
+    }
+  ],
+  "connections": {
+    "Webhook Reception": {
+      "main": [
+        [
+          {
+            "node": "Parse Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Validation & Nettoyage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation & Nettoyage": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Debug Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Response Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "affee3ba0c3444abe5ebd6fd0c8dda58f2afe224cea71a171c9061c1bbf58abf"
+  }
+}
