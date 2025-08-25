@@ -13,11 +13,19 @@ Un générateur de défis de développement personnel utilisant n8n et OpenAI GP
 
 ## 📁 Structure du projet
 
+### Fichiers principaux
 - `index.html` - Interface utilisateur principale
-- `workflow-defis-google-sheets-v2.json` - Workflow n8n final (version recommandée)
-- `workflow-defis-google-sheets-fixed.json` - Version alternative avec OpenAI Chat
-- `SETUP-*.md` - Guides de configuration
+- `workflow-defis-google-sheets-v2.json` - **Workflow n8n recommandé** (AI Agent)
+- `workflow-defis-google-sheets-fixed.json` - Version alternative (OpenAI Chat)
+- `workflow-defis-google-sheets.json` - Version Google Sheets de base
+
+### Documentation et configuration
+- `SETUP-*.md` - Guides de configuration détaillés
 - `database-setup.sql` - Script de base de données (optionnel)
+- `workflow-update-prompt.json` - Workflow de mise à jour des prompts
+
+### Archive
+- `archive/` - Versions de développement et fichiers de test archivés
 
 ## 🛠 Configuration
 
