@@ -1,0 +1,31 @@
+[build]
+  # No build process needed for static HTML
+  publish = "."
+  
+[build.environment]
+  # Static site - no build environment needed
+
+[[headers]]
+  # Apply security headers to all pages
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  # CORS headers for API calls (if needed)
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+
+# Redirect rules (optional)
+[[redirects]]
+  from = "/api/*"
+  to = "https://polaris-ia.app.n8n.cloud/webhook/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
