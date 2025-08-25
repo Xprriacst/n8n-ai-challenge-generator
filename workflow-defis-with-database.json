@@ -28,8 +28,43 @@
     },
     {
       "parameters": {
+        "operation": "select",
+        "table": "prompts",
+        "limit": 1,
+        "sort": {
+          "values": [
+            {
+              "column": "updated_at",
+              "direction": "DESC"
+            }
+          ]
+        },
+        "where": {
+          "values": [
+            {
+              "column": "active",
+              "condition": "equal",
+              "value": true
+            }
+          ]
+        }
+      },
+      "id": "get-current-prompt",
+      "name": "Get Current Prompt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [224, -50],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-db",
+          "name": "PostgreSQL Database"
+        }
+      }
+    },
+    {
+      "parameters": {
         "promptType": "define",
-        "text": "={{ $('Get Prompt from Sheets').first().json.A || 'Tu es un expert en développement personnel. Tu vas recevoir une problématique PRÉCISE et tu DOIS créer 15 micro-défis qui correspondent EXACTEMENT à cette problématique.\n\nPROBLÉMATIQUE À TRAITER: {{ $json.problematique }}\nNOMBRE DE DÉFIS DÉJÀ RELEVÉS: {{ $json.nombreDefis }}\nNIVEAU DÉTECTÉ: {{ $json.niveau }}\n\nRÈGLE STRICTE: Analyse la problématique ci-dessus et identifie le domaine exact. Puis crée 15 défis QUI NE TRAITENT QUE DE CE DOMAINE SPÉCIFIQUE. Ne dévie JAMAIS vers d\\'autres domaines.\n\nEXEMPLES DE SPÉCIALISATION STRICTE:\n- \"Développer mon réseau professionnel\" → LinkedIn (optimiser profil, publier, commenter), événements networking, cold outreach, cartes de visite, suivi contacts, personal branding professionnel\n- \"Améliorer mon cardio\" → course à pied, vélo, natation, HIIT, escaliers, marche rapide, fréquence cardiaque, endurance\n- \"Créer mon entreprise\" → étude de marché, business plan, MVP, validation concept, pitch, financement, clients, marketing\n- \"Mieux m\\'organiser\" → planning, to-do lists, méthodes productivité (GTD, Pomodoro), workspace, priorisation, calendrier\n- \"Renforcer mon estime de soi\" → auto-valorisation, reconnaissance succès, affirmations positives, acceptation de soi\n\nINTERDICTION ABSOLUE: Ne mélange JAMAIS les domaines. Si c\\'est du networking, ne parle PAS de confiance en soi. Si c\\'est du sport, ne parle PAS de méditation.\n\nTu dois créer des défis progressifs adaptés au niveau:\n- Débutant (0-2 défis): Actions simples, premiers pas\n- Intermédiaire (3-7 défis): Défis modérés, approfondissement\n- Avancé (8+ défis): Challenges complexes, maîtrise\n\nIMPORTANT: Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json, sans commentaires.\n\nStructure de réponse OBLIGATOIRE:\n{\n  \"problematique\": \"{{ $json.problematique }}\",\n  \"niveau_detecte\": \"{{ $json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[Nom spécifique au domaine identifié]\",\n      \"mission\": \"[Action concrète liée UNIQUEMENT au domaine]\",\n      \"pourquoi\": \"[Explication du bénéfice pour CE domaine précis]\",\n      \"bonus\": \"[Action supplémentaire ou null]\",\n      \"duree_estimee\": \"10\"\n    }\n  ]\n}\n\nATTENTION: Reste 100% dans le domaine spécifique. Aucun défi générique autorisé.' }}",\"",
+        "text": "={{ $('Get Current Prompt').first().json.prompt_text || 'Tu es un expert en développement personnel. Tu vas recevoir une problématique PRÉCISE et tu DOIS créer 15 micro-défis qui correspondent EXACTEMENT à cette problématique.\n\nPROBLÉMATIQUE À TRAITER: {{ $json.problematique }}\nNOMBRE DE DÉFIS DÉJÀ RELEVÉS: {{ $json.nombreDefis }}\nNIVEAU DÉTECTÉ: {{ $json.niveau }}\n\nRÈGLE STRICTE: Analyse la problématique ci-dessus et identifie le domaine exact. Puis crée 15 défis QUI NE TRAITENT QUE DE CE DOMAINE SPÉCIFIQUE. Ne dévie JAMAIS vers d\\'autres domaines.\n\nEXEMPLES DE SPÉCIALISATION STRICTE:\n- \"Développer mon réseau professionnel\" → LinkedIn (optimiser profil, publier, commenter), événements networking, cold outreach, cartes de visite, suivi contacts, personal branding professionnel\n- \"Améliorer mon cardio\" → course à pied, vélo, natation, HIIT, escaliers, marche rapide, fréquence cardiaque, endurance\n- \"Créer mon entreprise\" → étude de marché, business plan, MVP, validation concept, pitch, financement, clients, marketing\n- \"Mieux m\\'organiser\" → planning, to-do lists, méthodes productivité (GTD, Pomodoro), workspace, priorisation, calendrier\n- \"Renforcer mon estime de soi\" → auto-valorisation, reconnaissance succès, affirmations positives, acceptation de soi\n\nINTERDICTION ABSOLUE: Ne mélange JAMAIS les domaines. Si c\\'est du networking, ne parle PAS de confiance en soi. Si c\\'est du sport, ne parle PAS de méditation.\n\nTu dois créer des défis progressifs adaptés au niveau:\n- Débutant (0-2 défis): Actions simples, premiers pas\n- Intermédiaire (3-7 défis): Défis modérés, approfondissement\n- Avancé (8+ défis): Challenges complexes, maîtrise\n\nIMPORTANT: Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json, sans commentaires.\n\nStructure de réponse OBLIGATOIRE:\n{\n  \"problematique\": \"{{ $json.problematique }}\",\n  \"niveau_detecte\": \"{{ $json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[Nom spécifique au domaine identifié]\",\n      \"mission\": \"[Action concrète liée UNIQUEMENT au domaine]\",\n      \"pourquoi\": \"[Explication du bénéfice pour CE domaine précis]\",\n      \"bonus\": \"[Action supplémentaire ou null]\",\n      \"duree_estimee\": \"10\"\n    }\n  ]\n}\n\nATTENTION: Reste 100% dans le domaine spécifique. Aucun défi générique autorisé.' }}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -136,13 +171,111 @@
     },
     {
       "parameters": {
-        "jsCode": "// Log pour debugging\nconsole.log('Données reçues:', JSON.stringify($input.first().json, null, 2));\nreturn $input.first().json;"
+        "httpMethod": "POST",
+        "path": "save-prompt",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
       },
-      "id": "d9ef2abe-7d23-4120-bc6d-3ea8da112d14",
-      "name": "Debug Log",
+      "id": "webhook-save-prompt",
+      "name": "Webhook Save Prompt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 200],
+      "webhookId": "save-prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse le nouveau prompt reçu\nconst body = $input.first().json.body;\nlet promptData;\n\ntry {\n  promptData = typeof body === 'string' ? JSON.parse(body) : body;\n  \n  if (!promptData.prompt) {\n    throw new Error('Prompt manquant dans la requête');\n  }\n  \n  return {\n    prompt_text: promptData.prompt,\n    updated_at: new Date().toISOString(),\n    active: true,\n    success: true\n  };\n  \n} catch (error) {\n  return {\n    error: error.message,\n    success: false\n  };\n}"
+      },
+      "id": "parse-save-prompt",
+      "name": "Parse Save Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [800, 160]
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "prompts",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "active": "=false"
+          }
+        }
+      },
+      "id": "deactivate-old-prompts",
+      "name": "Deactivate Old Prompts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [400, 150],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-db",
+          "name": "PostgreSQL Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "prompts",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt_text": "={{ $json.prompt_text }}",
+            "active": "={{ $json.active }}",
+            "updated_at": "={{ $json.updated_at }}"
+          }
+        }
+      },
+      "id": "insert-new-prompt",
+      "name": "Insert New Prompt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [600, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-db",
+          "name": "PostgreSQL Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"message\": \"Prompt sauvegardé avec succès\",\n  \"timestamp\": $json.updated_at\n} }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "prompt-save-success",
+      "name": "Prompt Save Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 200]
     }
   ],
   "connections": {
@@ -158,6 +291,17 @@
       ]
     },
     "Parse Input Data": {
+      "main": [
+        [
+          {
+            "node": "Get Current Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Current Prompt": {
       "main": [
         [
           {
@@ -186,11 +330,6 @@
             "node": "Check Success",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Debug Log",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -216,11 +355,54 @@
           }
         ]
       ]
+    },
+    "Webhook Save Prompt": {
+      "main": [
+        [
+          {
+            "node": "Parse Save Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Save Prompt": {
+      "main": [
+        [
+          {
+            "node": "Deactivate Old Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deactivate Old Prompts": {
+      "main": [
+        [
+          {
+            "node": "Insert New Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert New Prompt": {
+      "main": [
+        [
+          {
+            "node": "Prompt Save Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "affee3ba0c3444abe5ebd6fd0c8dda58f2afe224cea71a171c9061c1bbf58abf"
+    "templateCredsSetupCompleted": false
   }
 }

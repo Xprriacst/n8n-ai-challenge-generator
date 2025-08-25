@@ -28,13 +28,50 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $('Get Prompt from Sheets').first().json.A || 'Tu es un expert en développement personnel. Tu vas recevoir une problématique PRÉCISE et tu DOIS créer 15 micro-défis qui correspondent EXACTEMENT à cette problématique.\n\nPROBLÉMATIQUE À TRAITER: {{ $json.problematique }}\nNOMBRE DE DÉFIS DÉJÀ RELEVÉS: {{ $json.nombreDefis }}\nNIVEAU DÉTECTÉ: {{ $json.niveau }}\n\nRÈGLE STRICTE: Analyse la problématique ci-dessus et identifie le domaine exact. Puis crée 15 défis QUI NE TRAITENT QUE DE CE DOMAINE SPÉCIFIQUE. Ne dévie JAMAIS vers d\\'autres domaines.\n\nEXEMPLES DE SPÉCIALISATION STRICTE:\n- \"Développer mon réseau professionnel\" → LinkedIn (optimiser profil, publier, commenter), événements networking, cold outreach, cartes de visite, suivi contacts, personal branding professionnel\n- \"Améliorer mon cardio\" → course à pied, vélo, natation, HIIT, escaliers, marche rapide, fréquence cardiaque, endurance\n- \"Créer mon entreprise\" → étude de marché, business plan, MVP, validation concept, pitch, financement, clients, marketing\n- \"Mieux m\\'organiser\" → planning, to-do lists, méthodes productivité (GTD, Pomodoro), workspace, priorisation, calendrier\n- \"Renforcer mon estime de soi\" → auto-valorisation, reconnaissance succès, affirmations positives, acceptation de soi\n\nINTERDICTION ABSOLUE: Ne mélange JAMAIS les domaines. Si c\\'est du networking, ne parle PAS de confiance en soi. Si c\\'est du sport, ne parle PAS de méditation.\n\nTu dois créer des défis progressifs adaptés au niveau:\n- Débutant (0-2 défis): Actions simples, premiers pas\n- Intermédiaire (3-7 défis): Défis modérés, approfondissement\n- Avancé (8+ défis): Challenges complexes, maîtrise\n\nIMPORTANT: Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json, sans commentaires.\n\nStructure de réponse OBLIGATOIRE:\n{\n  \"problematique\": \"{{ $json.problematique }}\",\n  \"niveau_detecte\": \"{{ $json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[Nom spécifique au domaine identifié]\",\n      \"mission\": \"[Action concrète liée UNIQUEMENT au domaine]\",\n      \"pourquoi\": \"[Explication du bénéfice pour CE domaine précis]\",\n      \"bonus\": \"[Action supplémentaire ou null]\",\n      \"duree_estimee\": \"10\"\n    }\n  ]\n}\n\nATTENTION: Reste 100% dans le domaine spécifique. Aucun défi générique autorisé.' }}",\"",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1v-okeX7THIpoKCIV_nJyEPpSku0ehjlLsCjD1AYhyiQ"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0"
+        },
+        "range": "A1",
+        "options": {}
+      },
+      "id": "get-prompt-from-sheets",
+      "name": "Get Prompt from Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [224, -50],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Créer le champ chatInput requis par l'AI Agent\nconst sheetsData = $('Get Prompt from Sheets').first().json;\nconst inputData = $('Parse Input Data').first().json;\n\n// Accéder au prompt depuis le format complexe de Google Sheets\nlet promptFromSheets;\nif (sheetsData && typeof sheetsData === 'object') {\n  // Le prompt est dans la première propriété qui n'est pas 'row_number'\n  const keys = Object.keys(sheetsData);\n  const promptKey = keys.find(key => key !== 'row_number');\n  promptFromSheets = sheetsData[promptKey];\n} else {\n  promptFromSheets = 'Prompt par défaut non trouvé';\n}\n\n// Remplacer les variables dans le prompt\nlet finalPrompt = promptFromSheets\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.problematique \\}\\}/g, inputData.problematique)\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.nombreDefis \\}\\}/g, inputData.nombreDefis)\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.niveau \\}\\}/g, inputData.niveau);\n\nreturn {\n  chatInput: finalPrompt\n};"
+      },
+      "id": "create-chat-input",
+      "name": "Create Chat Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, -50]
+    },
+    {
+      "parameters": {
+        "promptType": "auto",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
-      "position": [400, -176],
+      "position": [672, -50],
       "id": "836a6a81-1e8c-48e0-9fd6-97e4726e3037",
       "name": "AI Agent"
     },
@@ -133,16 +170,6 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [992, -208]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Log pour debugging\nconsole.log('Données reçues:', JSON.stringify($input.first().json, null, 2));\nreturn $input.first().json;"
-      },
-      "id": "d9ef2abe-7d23-4120-bc6d-3ea8da112d14",
-      "name": "Debug Log",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [800, 160]
     }
   ],
   "connections": {
@@ -158,6 +185,28 @@
       ]
     },
     "Parse Input Data": {
+      "main": [
+        [
+          {
+            "node": "Get Prompt from Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prompt from Sheets": {
+      "main": [
+        [
+          {
+            "node": "Create Chat Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Chat Input": {
       "main": [
         [
           {
@@ -184,11 +233,6 @@
         [
           {
             "node": "Check Success",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Debug Log",
             "type": "main",
             "index": 0
           }
@@ -220,7 +264,6 @@
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "affee3ba0c3444abe5ebd6fd0c8dda58f2afe224cea71a171c9061c1bbf58abf"
+    "templateCredsSetupCompleted": false
   }
 }

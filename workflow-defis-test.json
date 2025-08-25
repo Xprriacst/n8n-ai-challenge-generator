@@ -1,0 +1,150 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ui-defis-final",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "0857529a-6481-46fa-8e92-53a13c15fb77",
+      "name": "Webhook Reception",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, -176],
+      "webhookId": "ui-defis-final"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse les données du formulaire HTML\nconst body = $input.first().json.body;\nlet problematique, nombreDefis;\n\n// Si les données arrivent en x-www-form-urlencoded\nif (typeof body === 'string') {\n  const params = new URLSearchParams(body);\n  problematique = params.get('Je veux...') || '';\n  nombreDefis = parseInt(params.get('Combien de défi à tu relevé') || '0');\n} else {\n  // Si les données arrivent en JSON\n  problematique = body['Je veux...'] || body.problematique || '';\n  nombreDefis = parseInt(body['Combien de défi à tu relevé'] || body.nombreDefis || '0');\n}\n\n// Détection automatique du niveau basé sur le nombre de défis déjà relevés\nlet niveau;\nif (nombreDefis === 0) {\n  niveau = 'débutant';\n} else if (nombreDefis <= 5) {\n  niveau = 'intermédiaire';\n} else {\n  niveau = 'avancé';\n}\n\nreturn {\n  problematique: problematique.trim(),\n  nombreDefis,\n  niveau,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "5ae513f6-0775-4f1c-82c2-3c5b3da45725",
+      "name": "Parse Input Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, -176]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prompt GPT temporaire pour test\nconst prompt = `Tu es un expert en développement personnel. Tu vas recevoir une problématique PRÉCISE et tu DOIS créer 15 micro-défis qui correspondent EXACTEMENT à cette problématique.\n\nPROBLÉMATIQUE À TRAITER: {{ $json.problematique }}\nNOMBRE DE DÉFIS DÉJÀ RELEVÉS: {{ $json.nombreDefis }}\nNIVEAU DÉTECTÉ: {{ $json.niveau }}\n\nRÈGLE STRICTE: Analyse la problématique ci-dessus et identifie le domaine exact. Puis crée 15 défis QUI NE TRAITENT QUE DE CE DOMAINE SPÉCIFIQUE. Ne dévie JAMAIS vers d'autres domaines.\n\nEXEMPLES DE SPÉCIALISATION STRICTE:\n- \"Développer mon réseau professionnel\" → LinkedIn (optimiser profil, publier, commenter), événements networking, cold outreach, cartes de visite, suivi contacts, personal branding professionnel\n- \"Améliorer mon cardio\" → course à pied, vélo, natation, HIIT, escaliers, marche rapide, fréquence cardiaque, endurance\n- \"Créer mon entreprise\" → étude de marché, business plan, MVP, validation concept, pitch, financement, clients, marketing\n- \"Mieux m'organiser\" → planning, to-do lists, méthodes productivité (GTD, Pomodoro), workspace, priorisation, calendrier\n- \"Renforcer mon estime de soi\" → auto-valorisation, reconnaissance succès, affirmations positives, acceptation de soi\n\nINTERDICTION ABSOLUE: Ne mélange JAMAIS les domaines. Si c'est du networking, ne parle PAS de confiance en soi. Si c'est du sport, ne parle PAS de méditation.\n\nTu dois créer des défis progressifs adaptés au niveau:\n- Débutant (0-2 défis): Actions simples, premiers pas\n- Intermédiaire (3-7 défis): Défis modérés, approfondissement\n- Avancé (8+ défis): Challenges complexes, maîtrise\n\nIMPORTANT: Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans \\`\\`\\`json, sans commentaires.\n\nStructure de réponse OBLIGATOIRE:\n{\n  \"problematique\": \"{{ $json.problematique }}\",\n  \"niveau_detecte\": \"{{ $json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[Nom spécifique au domaine identifié]\",\n      \"mission\": \"[Action concrète liée UNIQUEMENT au domaine]\",\n      \"pourquoi\": \"[Explication du bénéfice pour CE domaine précis]\",\n      \"bonus\": \"[Action supplémentaire ou null]\",\n      \"duree_estimee\": \"10\"\n    }\n  ]\n}\n\nATTENTION: Reste 100% dans le domaine spécifique. Aucun défi générique autorisé.`;\n\nreturn {\n  prompt: prompt\n};"
+      },
+      "id": "get-prompt-temp",
+      "name": "Get Prompt (Temp)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, -176]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {
+          "temperature": 0.7
+        },
+        "prompt": "={{ $('Get Prompt (Temp)').first().json.prompt }}"
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [672, -176]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nettoie et valide la réponse de l'IA\nconst response = $input.first().json.output;\n\ntry {\n  let cleanResponse = response;\n  \n  // Nettoyer la réponse si elle contient des blocs markdown\n  if (typeof response === 'string') {\n    // Supprimer les blocs markdown ```json et ```\n    cleanResponse = response\n      .replace(/```json\\s*/g, '')\n      .replace(/```\\s*/g, '')\n      .trim();\n  }\n  \n  let data;\n  \n  // Tenter de parser directement si c'est déjà un objet\n  if (typeof cleanResponse === 'object') {\n    data = cleanResponse;\n  } else {\n    // Sinon parser en tant que JSON string\n    data = JSON.parse(cleanResponse);\n  }\n  \n  // Validation : vérifier qu'on a bien 15 défis\n  if (!data.defis || !Array.isArray(data.defis) || data.defis.length !== 15) {\n    throw new Error(`Nombre de défis incorrect: ${data.defis?.length || 0} au lieu de 15`);\n  }\n  \n  // Validation de la structure de chaque défi\n  data.defis.forEach((defi, index) => {\n    if (!defi.numero || !defi.nom || !defi.mission || !defi.pourquoi) {\n      throw new Error(`Défi ${index + 1} incomplet - manque: ${!defi.numero ? 'numero ' : ''}${!defi.nom ? 'nom ' : ''}${!defi.mission ? 'mission ' : ''}${!defi.pourquoi ? 'pourquoi' : ''}`);\n    }\n    // S'assurer que duree_estimee existe\n    if (!defi.duree_estimee) {\n      defi.duree_estimee = \"15\";\n    }\n  });\n  \n  return data;\n  \n} catch (error) {\n  // En cas d'erreur, retourner un exemple par défaut avec 15 défis complets\n  console.error('Erreur parsing IA:', error.message);\n  \n  const inputData = $('Parse Input Data').first().json;\n  \n  return {\n    problematique: inputData.problematique,\n    niveau_detecte: inputData.niveau,\n    erreur: error.message,\n    defis: [\n      {\n        \"numero\": 1,\n        \"nom\": \"Auto-observation quotidienne\",\n        \"mission\": \"Notez 3 situations où vous manquez de confiance cette semaine\",\n        \"pourquoi\": \"Identifier les patterns aide à mieux comprendre les déclencheurs\",\n        \"bonus\": null,\n        \"duree_estimee\": \"10\"\n      },\n      {\n        \"numero\": 2,\n        \"nom\": \"Inventaire des victoires\",\n        \"mission\": \"Listez 5 réussites personnelles des 2 dernières années\",\n        \"pourquoi\": \"Se rappeler ses succès renforce l'estime de soi\",\n        \"bonus\": \"Demandez à un proche ses 3 qualités préférées chez vous\",\n        \"duree_estimee\": \"15\"\n      },\n      {\n        \"numero\": 3,\n        \"nom\": \"Posture de confiance\",\n        \"mission\": \"Adoptez une posture droite et souriez pendant 5 minutes\",\n        \"pourquoi\": \"Le langage corporel influence directement l'état mental\",\n        \"bonus\": \"Regardez-vous dans le miroir en vous complimentant\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 4,\n        \"nom\": \"Compliment authentique\",\n        \"mission\": \"Faites un compliment sincère à une personne aujourd'hui\",\n        \"pourquoi\": \"Donner de la valeur aux autres renforce notre propre valeur\",\n        \"bonus\": null,\n        \"duree_estimee\": \"2\"\n      },\n      {\n        \"numero\": 5,\n        \"nom\": \"Zone de confort\",\n        \"mission\": \"Faites une chose qui vous met légèrement mal à l'aise\",\n        \"pourquoi\": \"Sortir de sa zone de confort développe la confiance progressivement\",\n        \"bonus\": \"Documentez votre ressenti avant et après\",\n        \"duree_estimee\": \"30\"\n      },\n      {\n        \"numero\": 6,\n        \"nom\": \"Affirmations personnelles\",\n        \"mission\": \"Répétez 3 affirmations positives sur vous-même\",\n        \"pourquoi\": \"L'auto-suggestion positive reprogramme les croyances limitantes\",\n        \"bonus\": \"Écrivez-les et placez-les où vous les verrez souvent\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 7,\n        \"nom\": \"Compétence cachée\",\n        \"mission\": \"Identifiez une compétence que vous sous-estimez chez vous\",\n        \"pourquoi\": \"Reconnaître ses talents cachés booste l'estime de soi\",\n        \"bonus\": \"Demandez à 3 personnes ce qu'elles voient comme vos forces\",\n        \"duree_estimee\": \"20\"\n      },\n      {\n        \"numero\": 8,\n        \"nom\": \"Défi social\",\n        \"mission\": \"Initiez une conversation avec un inconnu\",\n        \"pourquoi\": \"L'interaction sociale réussie renforce la confiance interpersonnelle\",\n        \"bonus\": \"Posez une question ouverte pour approfondir l'échange\",\n        \"duree_estimee\": \"10\"\n      },\n      {\n        \"numero\": 9,\n        \"nom\": \"Gratitude personnelle\",\n        \"mission\": \"Listez 5 choses pour lesquelles vous êtes reconnaissant envers vous-même\",\n        \"pourquoi\": \"La gratitude envers soi-même améliore l'auto-perception\",\n        \"bonus\": null,\n        \"duree_estimee\": \"10\"\n      },\n      {\n        \"numero\": 10,\n        \"nom\": \"Prise de parole\",\n        \"mission\": \"Exprimez votre opinion dans une conversation de groupe\",\n        \"pourquoi\": \"S'affirmer verbalement développe l'assurance personnelle\",\n        \"bonus\": \"Maintenez le contact visuel en parlant\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 11,\n        \"nom\": \"Échec constructif\",\n        \"mission\": \"Identifiez un échec passé et trouvez 3 leçons positives\",\n        \"pourquoi\": \"Transformer les échecs en apprentissages renforce la résilience\",\n        \"bonus\": \"Partagez cette réflexion avec quelqu'un de confiance\",\n        \"duree_estimee\": \"15\"\n      },\n      {\n        \"numero\": 12,\n        \"nom\": \"Objectif personnel\",\n        \"mission\": \"Fixez-vous un petit objectif atteignable pour demain\",\n        \"pourquoi\": \"Atteindre des objectifs, même petits, nourrit la confiance\",\n        \"bonus\": \"Célébrez quand vous l'atteignez\",\n        \"duree_estimee\": \"5\"\n      },\n      {\n        \"numero\": 13,\n        \"nom\": \"Style personnel\",\n        \"mission\": \"Portez quelque chose qui vous fait vous sentir bien dans votre peau\",\n        \"pourquoi\": \"L'apparence influence directement la confiance en soi\",\n        \"bonus\": \"Notez comment cela affecte votre comportement\",\n        \"duree_estimee\": \"2\"\n      },\n      {\n        \"numero\": 14,\n        \"nom\": \"Aide à autrui\",\n        \"mission\": \"Aidez quelqu'un sans rien attendre en retour\",\n        \"pourquoi\": \"Être utile aux autres renforce le sentiment de valeur personnelle\",\n        \"bonus\": null,\n        \"duree_estimee\": \"20\"\n      },\n      {\n        \"numero\": 15,\n        \"nom\": \"Bilan de progression\",\n        \"mission\": \"Réfléchissez à vos progrès en confiance cette semaine\",\n        \"pourquoi\": \"Prendre conscience de sa progression maintient la motivation\",\n        \"bonus\": \"Planifiez le prochain défi à relever\",\n        \"duree_estimee\": \"10\"\n      }\n    ]\n  };\n}"
+      },
+      "id": "validation-nettoyage",
+      "name": "Validation & Nettoyage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [896, -176]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "response-final",
+      "name": "Response Final",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, -176]
+    }
+  ],
+  "connections": {
+    "Webhook Reception": {
+      "main": [
+        [
+          {
+            "node": "Parse Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input Data": {
+      "main": [
+        [
+          {
+            "node": "Get Prompt (Temp)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prompt (Temp)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Validation & Nettoyage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation & Nettoyage": {
+      "main": [
+        [
+          {
+            "node": "Response Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
