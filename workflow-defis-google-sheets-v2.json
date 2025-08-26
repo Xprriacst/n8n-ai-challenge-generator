@@ -90,7 +90,7 @@
         "promptType": "define",
         "text": "={{ $json.chatInput }}",
         "options": {
-          "systemMessage": "Tu es un expert en développement personnel. Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json. Structure obligatoire:\n{\n  \"problematique\": \"[problématique reçue]\",\n  \"niveau_detecte\": \"[niveau]\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[nom du défi]\",\n      \"mission\": \"[action concrète]\",\n      \"pourquoi\": \"[explication]\",\n      \"bonus\": \"[action supplémentaire ou null]\",\n      \"duree_estimee\": \"[minutes]\"\n    }\n  ]\n}",
+          "systemMessage": "Tu es un expert en développement personnel. Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json. Structure obligatoire:\n{\n  \"problematique\": \"{{ $('Parse Input Data').first().json.problematique }}\",\n  \"niveau_detecte\": \"{{ $('Parse Input Data').first().json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[nom du défi]\",\n      \"mission\": \"[action concrète]\",\n      \"pourquoi\": \"[explication]\",\n      \"bonus\": \"[action supplémentaire ou null]\",\n      \"duree_estimee\": \"[minutes]\"\n    }\n  ]\n}",
           "maxTokens": 2000,
           "temperature": 0.7
         }
