@@ -74,7 +74,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Créer le prompt final avec les variables remplacées\nconst sheetsData = $('Get Prompt from Sheets').first().json;\nconst inputData = $('Parse Input Data').first().json;\n\n// Extraire le prompt depuis le format complexe de Google Sheets\nlet promptTemplate;\nif (sheetsData && typeof sheetsData === 'object') {\n  const keys = Object.keys(sheetsData);\n  const promptKey = keys.find(key => key !== 'row_number');\n  promptTemplate = sheetsData[promptKey];\n} else {\n  promptTemplate = 'Prompt par défaut non trouvé';\n}\n\n// Remplacer les variables dans le prompt\nlet finalPrompt = promptTemplate\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.problematique \\}\\}/g, inputData.problematique)\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.nombreDefis \\}\\}/g, inputData.nombreDefis)\n  .replace(/\\{\\{ \\$\\('Parse Input Data'\\)\\.first\\(\\)\\.json\\.niveau \\}\\}/g, inputData.niveau);\n\nreturn {\n  chatInput: finalPrompt\n};"
+        "jsCode": "// Créer le prompt final avec les variables remplacées\nconst sheetsData = $('Get Prompt from Sheets').first().json;\nconst inputData = $('Parse Input Data').first().json;\n\n// Extraire le prompt depuis le format complexe de Google Sheets\nlet promptTemplate;\nif (sheetsData && typeof sheetsData === 'object') {\n  const keys = Object.keys(sheetsData);\n  const promptKey = keys.find(key => key !== 'row_number');\n  promptTemplate = sheetsData[promptKey];\n} else {\n  promptTemplate = 'Prompt par défaut non trouvé';\n}\n\n// Remplacer les variables dans le prompt\nlet finalPrompt = promptTemplate\n  .replace(/\\{\\{ \\$json\\.problematique \\}\\}/g, inputData.problematique)\n  .replace(/\\{\\{ \\$json\\.nombreDefis \\}\\}/g, inputData.nombreDefis)\n  .replace(/\\{\\{ \\$json\\.niveau \\}\\}/g, inputData.niveau);\n\nreturn {\n  chatInput: finalPrompt\n};"
       },
       "id": "create-final-prompt",
       "name": "Create Chat Input",
@@ -87,7 +87,7 @@
     },
     {
       "parameters": {
-        "promptType": "define",
+        "promptType": "auto",
         "text": "={{ $json.chatInput }}",
         "options": {
           "systemMessage": "Tu es un expert en développement personnel. Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans ```json. Structure obligatoire:\n{\n  \"problematique\": \"{{ $('Parse Input Data').first().json.problematique }}\",\n  \"niveau_detecte\": \"{{ $('Parse Input Data').first().json.niveau }}\",\n  \"defis\": [\n    {\n      \"numero\": 1,\n      \"nom\": \"[nom du défi]\",\n      \"mission\": \"[action concrète]\",\n      \"pourquoi\": \"[explication]\",\n      \"bonus\": \"[action supplémentaire ou null]\",\n      \"duree_estimee\": \"[minutes]\"\n    }\n  ]\n}",
@@ -112,7 +112,7 @@
           "value": "gpt-4-1106-preview"
         },
         "options": {
-          "maxTokens": 2000,
+          "maxTokens": 4000,
           "temperature": 0.8
         }
       },
