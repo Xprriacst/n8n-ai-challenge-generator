@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Défis Personnalisés</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .challenge-card {
+            transition: all 0.3s ease;
+        }
+        .challenge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8">
+            <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">Générateur de Défis Personnalisés</h1>
+            <p class="text-gray-600 text-center mb-8">Découvrez des défis sur mesure pour votre développement personnel</p>
+            
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">Je veux...</h2>
+                <div id="categories" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">🌱 Bien-être intérieur</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Gérer mes émotions (jalousie, hypersensibilité, anxiété…)">🧠 Gérer mes émotions</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Rebondir après un échec">💪 Rebondir après un échec</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Apprendre à lâcher-prise, arrêter de vouloir tout contrôler">🌊 Apprendre à lâcher-prise</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Me fixer des règles et les respecter">⚡ Me fixer des règles et les respecter</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">🤝 Liens & influence</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Développer mon empathie et mon écoute active">👂 Développer mon empathie et mon écoute active</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Devenir plus charismatique et élargir mon réseau">🤝 Devenir plus charismatique et élargir mon réseau</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Oser m'affirmer (dire les choses sans blesser)">💬 Oser m'affirmer</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Mieux gérer les conflits">⚖️ Mieux gérer les conflits</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">💼 Projets & réussite</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Entreprendre et exprimer ma créativité">🚀 Entreprendre et exprimer ma créativité</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Diversifier mes sources de revenus">💰 Diversifier mes sources de revenus</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Prendre des risques calculés">🎯 Prendre des risques calculés</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Trouver ma passion">✨ Trouver ma passion</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Vivre de ma passion">🌟 Vivre de ma passion</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">💪 Énergie & vitalité</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Sortir d'une dépendance (alcool, tabac, réseaux sociaux, jeux, pornographie…)">🚫 Sortir d'une dépendance</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Améliorer mon cardio">❤️ Améliorer mon cardio</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Perdre du poids">⚖️ Perdre du poids</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">📅 Organisation & efficacité</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Mieux m'organiser">📅 Mieux m'organiser</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Arrêter de procrastiner">⏰ Arrêter de procrastiner</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Apprendre à ne pas abandonner trop vite">🔥 Ne pas abandonner trop vite</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Définir mes priorités">🎯 Définir mes priorités</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Planifier ma vie à court et moyen terme">🗺️ Planifier ma vie à court et moyen terme</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-indigo-700 mb-2">🌟 Estime & affirmation</h3>
+                        <div class="space-y-2">
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Prendre confiance en moi (sans écraser les autres)">💪 Prendre confiance en moi</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Apprendre à dire non">🛡️ Apprendre à dire non</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Arrêter de me comparer aux autres (réseaux sociaux, pression sociale)">🔍 Arrêter de me comparer aux autres</button>
+                            <button class="topic-btn text-left w-full px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded" data-topic="Accepter qui je suis (physique, personnalité, différences)">🤗 Accepter qui je suis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="w-1/3 mx-auto">
+                    <label for="challengesCount" class="block text-sm font-medium text-gray-700 mb-1 text-center">Nombre de défis déjà relevés</label>
+                    <input type="number" id="challengesCount" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center">
+                </div>
+                
+                <div id="loadingSection" class="hidden">
+                    <button id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center" disabled>
+                        <span>Génération de vos défis en cours...</span>
+                        <svg id="spinner" class="animate-spin -mr-1 ml-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="result" class="mt-12 hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Vos défis personnalisés</h2>
+                <div id="challengesList" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fonction pour générer les défis
+        async function generateChallenges(problemTopic) {
+            const challengesCount = document.getElementById('challengesCount').value;
+            const loadingSection = document.getElementById('loadingSection');
+            const resultSection = document.getElementById('result');
+            
+            // Show loading state
+            loadingSection.classList.remove('hidden');
+            
+            try {
+                // URL de production du Webhook n8n avec Agent IA
+                const response = await fetch('https://polaris-ia.app.n8n.cloud/webhook/ui-defis-final', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    },
+                    body: new URLSearchParams({
+                        'Je veux...': `Je veux travailler sur: ${problemTopic}`,
+                        'Combien de défi à tu relevé': String(challengesCount)
+                    }).toString()
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la génération des défis');
+                }
+                
+                const responseText = await response.text();
+                const data = JSON.parse(responseText);
+                
+                displayChallenges(data);
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                const notice = document.createElement('div');
+                notice.className = 'mt-4 p-3 rounded bg-yellow-50 text-yellow-800 text-sm';
+                notice.textContent = "API indisponible. Affichage d'un exemple simulé.";
+                document.querySelector('.max-w-3xl').prepend(notice);
+                const demo = simulateResponse(problemTopic);
+                displayChallenges(demo);
+                resultSection.classList.remove('hidden');
+            } finally {
+                loadingSection.classList.add('hidden');
+            }
+        }
+
+        // Clic sur les boutons de thématiques
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList && target.classList.contains('topic-btn')) {
+                const topic = target.getAttribute('data-topic') || target.textContent.trim();
+                document.getElementById('result').classList.add('hidden');
+                generateChallenges(topic);
+            }
+        });
+        
+        function displayChallenges(data) {
+            const challengesList = document.getElementById('challengesList');
+            challengesList.innerHTML = '';
+            
+            const title = document.createElement('h3');
+            title.className = 'text-lg font-medium text-gray-900 mb-2';
+            title.textContent = `Problématique : ${data.problematique}`;
+            challengesList.appendChild(title);
+            
+            const level = document.createElement('p');
+            level.className = 'text-sm text-indigo-600 mb-6';
+            level.textContent = `Niveau détecté : ${data.niveau_detecte}`;
+            challengesList.appendChild(level);
+            
+            data.defis.forEach(challenge => {
+                const card = document.createElement('div');
+                card.className = 'challenge-card bg-white p-6 rounded-xl border border-gray-200';
+                card.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-4">
+                            ${challenge.numero}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">${challenge.nom}</h3>
+                            <p class="text-gray-600 mb-3">${challenge.mission}</p>
+                            <div class="bg-indigo-50 p-3 rounded-lg mb-3">
+                                <p class="text-sm font-medium text-indigo-800 mb-1">Pourquoi ?</p>
+                                <p class="text-sm text-indigo-700">${challenge.pourquoi}</p>
+                            </div>
+                            ${challenge.bonus ? `
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <p class="text-sm font-medium text-yellow-800 mb-1">Bonus</p>
+                                <p class="text-sm text-yellow-700">${challenge.bonus}</p>
+                            </div>
+                            ` : ''}
+                            <div class="mt-3 text-xs text-gray-500">
+                                ⏱️ Durée estimée : ${challenge.duree_estimee} minutes
+                            </div>
+                        </div>
+                    </div>
+                `;
+                challengesList.appendChild(card);
+            });
+        }
+        
+        function simulateResponse(problemTopic = "Améliorer ma confiance en moi") {
+            const challengesCount = parseInt(document.getElementById('challengesCount').value) || 0;
+            let niveau = challengesCount === 0 ? 'débutant' : challengesCount <= 5 ? 'intermédiaire' : 'avancé';
+            
+            const defisGeneriques = [
+                { nom: "Auto-observation quotidienne", mission: "Notez 3 situations liées à votre problématique cette semaine", pourquoi: "L'observation est la première étape du changement", bonus: "Identifiez les patterns récurrents", duree: "10" },
+                { nom: "Action micro-progressive", mission: "Faites une petite action concrète vers votre objectif aujourd'hui", pourquoi: "Les petits pas créent une dynamique positive", bonus: "Célébrez cette victoire", duree: "15" }
+            ];
+            
+            const defisFinaux = [];
+            for (let i = 0; i < 15; i++) {
+                const defiBase = defisGeneriques[i % defisGeneriques.length];
+                defisFinaux.push({
+                    numero: i + 1,
+                    nom: defiBase.nom + ` (${i + 1})`,
+                    mission: defiBase.mission,
+                    pourquoi: defiBase.pourquoi,
+                    bonus: defiBase.bonus || null,
+                    duree_estimee: defiBase.duree
+                });
+            }
+            
+            return {
+                problematique: `Je veux travailler sur: ${problemTopic}`,
+                niveau_detecte: niveau,
+                defis: defisFinaux
+            };
+        }
+    </script>
+</body>
+</html>
