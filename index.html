@@ -107,11 +107,46 @@
     </div>
 
     <script>
+        // Rate limiting - max 3 requêtes par minute
+        const RATE_LIMIT = {
+            maxRequests: 3,
+            timeWindow: 60000, // 1 minute en ms
+            storageKey: 'defis_rate_limit'
+        };
+
+        function checkRateLimit() {
+            const now = Date.now();
+            const stored = localStorage.getItem(RATE_LIMIT.storageKey);
+            let attempts = stored ? JSON.parse(stored) : [];
+            
+            // Nettoyer les tentatives anciennes
+            attempts = attempts.filter(timestamp => now - timestamp < RATE_LIMIT.timeWindow);
+            
+            if (attempts.length >= RATE_LIMIT.maxRequests) {
+                const oldestAttempt = Math.min(...attempts);
+                const waitTime = RATE_LIMIT.timeWindow - (now - oldestAttempt);
+                return { allowed: false, waitTime: Math.ceil(waitTime / 1000) };
+            }
+            
+            // Ajouter cette tentative
+            attempts.push(now);
+            localStorage.setItem(RATE_LIMIT.storageKey, JSON.stringify(attempts));
+            
+            return { allowed: true, waitTime: 0 };
+        }
+
         // Fonction pour générer les défis
         async function generateChallenges(problemTopic) {
             const challengesCount = document.getElementById('challengesCount').value;
             const loadingSection = document.getElementById('loadingSection');
             const resultSection = document.getElementById('result');
+            
+            // Vérifier le rate limiting
+            const rateLimitCheck = checkRateLimit();
+            if (!rateLimitCheck.allowed) {
+                showRateLimitMessage(rateLimitCheck.waitTime);
+                return;
+            }
             
             // Show loading state
             loadingSection.classList.remove('hidden');
@@ -141,21 +176,37 @@
                     // Récupérer le texte brut d'abord
                     const responseText = await response.text();
                     
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                    console.log('Response text:', responseText);
+                    
                     // Vérifier si la réponse est vide
                     if (!responseText || responseText.trim() === '') {
-                        throw new Error('Réponse vide du webhook');
+                        console.error('Webhook returned empty response');
+                        throw new Error('Réponse vide du webhook - Le workflow n8n pourrait être inactif ou avoir une erreur');
                     }
                     
                     // Tenter de parser en JSON
                     data = JSON.parse(responseText);
                     
+                    // Vérifier si c'est une erreur n8n/OpenAI
+                    if (data.errorMessage) {
+                        if (data.errorMessage.includes('too many requests') || data.errorMessage.includes('quota')) {
+                            throw new Error('Quota OpenAI dépassé - Vérifiez votre plan de facturation OpenAI');
+                        } else {
+                            throw new Error(`Erreur n8n: ${data.errorMessage}`);
+                        }
+                    }
+                    
                     // Vérifier que la structure est valide
                     if (!data.defis || !Array.isArray(data.defis) || data.defis.length === 0) {
-                        throw new Error('Structure de réponse invalide');
+                        console.error('Invalid response structure:', data);
+                        throw new Error('Structure de réponse invalide - Vérifiez la configuration du workflow n8n');
                     }
                     
                 } catch (parseError) {
                     console.error('Erreur parsing JSON:', parseError.message);
+                    console.error('Raw response was:', responseText);
                     throw new Error(`Réponse invalide du webhook: ${parseError.message}`);
                 }
                 
@@ -168,11 +219,53 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                // Fallback: simuler une réponse si CORS ou mauvais format
+                
+                // Créer un message d'erreur plus informatif
                 const notice = document.createElement('div');
-                notice.className = 'mt-4 p-3 rounded bg-yellow-50 text-yellow-800 text-sm';
-                notice.textContent = "API indisponible (CORS ou URL). Affichage d'un exemple simulé.";
+                let noticeClass = 'mt-4 p-4 rounded border text-sm';
+                let solutions = '';
+                
+                if (error.message.includes('Quota OpenAI dépassé')) {
+                    noticeClass += ' bg-orange-50 border-orange-200 text-orange-800';
+                    solutions = `
+                        <div class="text-xs text-orange-600">
+                            <strong>Solutions:</strong><br>
+                            • Vérifiez votre quota OpenAI sur platform.openai.com<br>
+                            • Ajoutez des crédits à votre compte OpenAI<br>
+                            • Attendez la réinitialisation mensuelle du quota
+                        </div>
+                    `;
+                } else {
+                    noticeClass += ' bg-red-50 border-red-200 text-red-800';
+                    solutions = `
+                        <div class="text-xs text-red-600">
+                            <strong>Solutions possibles:</strong><br>
+                            • Vérifiez que le workflow n8n est actif<br>
+                            • Vérifiez les credentials OpenAI et Google Sheets<br>
+                            • Consultez les logs d'exécution dans n8n
+                        </div>
+                    `;
+                }
+                
+                notice.className = noticeClass;
+                notice.innerHTML = `
+                    <div class="font-semibold mb-2">⚠️ ${error.message.includes('Quota') ? 'Quota OpenAI dépassé' : 'Erreur du webhook n8n'}</div>
+                    <div class="mb-2">${error.message}</div>
+                    ${solutions}
+                    <div class="mt-3 text-xs bg-yellow-50 text-yellow-800 p-2 rounded border">
+                        💡 Affichage d'un exemple simulé en attendant
+                    </div>
+                `;
+                
+                // Supprimer l'ancien message d'erreur s'il existe
+                const existingNotice = document.querySelector('.error-notice');
+                if (existingNotice) {
+                    existingNotice.remove();
+                }
+                notice.classList.add('error-notice');
                 document.querySelector('.max-w-3xl').prepend(notice);
+                
+                // Fallback avec exemple simulé
                 const demo = simulateResponse(problemTopic);
                 displayChallenges(demo);
                 resultSection.classList.remove('hidden');
@@ -240,6 +333,36 @@
                 `;
                 challengesList.appendChild(card);
             });
+        }
+
+        function showRateLimitMessage(waitTimeSeconds) {
+            // Supprimer l'ancien message s'il existe
+            const existingNotice = document.querySelector('.rate-limit-notice');
+            if (existingNotice) {
+                existingNotice.remove();
+            }
+
+            const notice = document.createElement('div');
+            notice.className = 'rate-limit-notice mt-4 p-4 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm';
+            notice.innerHTML = `
+                <div class="font-semibold mb-2">⏱️ Limitation des requêtes</div>
+                <div class="mb-2">Vous avez atteint la limite de 3 requêtes par minute pour préserver le quota OpenAI.</div>
+                <div class="text-xs text-blue-600 mb-3">
+                    <strong>Veuillez attendre ${waitTimeSeconds} secondes avant de réessayer.</strong>
+                </div>
+                <div class="bg-yellow-50 text-yellow-800 p-2 rounded border text-xs">
+                    💡 Cette limitation évite de dépasser le quota OpenAI trop rapidement
+                </div>
+            `;
+            
+            document.querySelector('.max-w-3xl').prepend(notice);
+            
+            // Supprimer automatiquement le message après le délai
+            setTimeout(() => {
+                if (notice.parentNode) {
+                    notice.remove();
+                }
+            }, waitTimeSeconds * 1000);
         }
         
         // Fallback intelligent basé sur la thématique
